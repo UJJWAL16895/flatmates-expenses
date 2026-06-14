@@ -133,7 +133,7 @@ export default function ExpensesPage() {
               key={expense.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
+              transition={{ delay: i * 0.05 }}
               className="glass-card overflow-hidden cursor-pointer"
               onClick={() => setExpandedId(expandedId === expense.id ? null : expense.id)}
             >

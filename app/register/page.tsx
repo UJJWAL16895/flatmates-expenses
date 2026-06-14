@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import FloatingBackgroundCards from '@/components/ui/floating-background-cards';
+import Logo from '@/components/ui/logo';
 
 export default function RegisterPage() {
   const { status } = useSession();
@@ -114,31 +116,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-12 px-4"
       style={{ background: 'var(--bg-primary)' }}>
 
-      {/* Background floating cards */}
-      {[
-        { top: '8%', left: '7%', delay: 0, size: 120 },
-        { top: '65%', left: '4%', delay: 1, size: 80 },
-        { top: '15%', right: '6%', delay: 0.5, size: 100 },
-        { top: '75%', right: '10%', delay: 1.5, size: 140 },
-        { top: '45%', left: '15%', delay: 2, size: 60 },
-      ].map((card, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-2xl float-card opacity-[0.04]"
-          style={{
-            top: card.top,
-            left: card.left,
-            right: (card as Record<string, unknown>).right as string | undefined,
-            width: card.size,
-            height: card.size,
-            background: 'linear-gradient(135deg, var(--accent), #06b6d4)',
-            animationDelay: `${card.delay}s`,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.04 }}
-          transition={{ delay: card.delay * 0.3 }}
-        />
-      ))}
+      {/* Background floating cards (2.1) */}
+      <FloatingBackgroundCards />
 
       {/* Registration Card */}
       <motion.div
@@ -148,17 +127,15 @@ export default function RegisterPage() {
         className="glass-card p-8 w-full max-w-xl relative z-10"
         style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }}
       >
-        {/* Logo & Header */}
+        {/* Logo & Header (2.2) */}
         <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}>
-            F
-          </div>
+          <Logo />
           <div>
             <h1 className="text-2xl font-bold text-white">Create Account</h1>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Join Flatmates Expense Tracker</p>
           </div>
         </div>
+
 
         {success ? (
           <motion.div 

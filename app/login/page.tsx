@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import FloatingBackgroundCards from '@/components/ui/floating-background-cards';
+import Logo from '@/components/ui/logo';
 
 export default function LoginPage() {
   const { status } = useSession();
@@ -51,31 +53,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: 'var(--bg-primary)' }}>
 
-      {/* Background floating cards */}
-      {[
-        { top: '10%', left: '10%', delay: 0, size: 120 },
-        { top: '60%', left: '5%', delay: 1, size: 80 },
-        { top: '20%', right: '8%', delay: 0.5, size: 100 },
-        { top: '70%', right: '12%', delay: 1.5, size: 140 },
-        { top: '40%', left: '20%', delay: 2, size: 60 },
-      ].map((card, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-2xl float-card opacity-[0.04]"
-          style={{
-            top: card.top,
-            left: card.left,
-            right: (card as Record<string, unknown>).right as string | undefined,
-            width: card.size,
-            height: card.size,
-            background: 'linear-gradient(135deg, var(--accent), #06b6d4)',
-            animationDelay: `${card.delay}s`,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.04 }}
-          transition={{ delay: card.delay * 0.3 }}
-        />
-      ))}
+      {/* Background floating cards (2.1) */}
+      <FloatingBackgroundCards />
 
       {/* Login Card */}
       <motion.div
@@ -85,17 +64,15 @@ export default function LoginPage() {
         className="glass-card p-10 w-full max-w-md relative z-10"
         style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }}
       >
-        {/* Logo */}
+        {/* Logo (2.2) */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}>
-            F
-          </div>
+          <Logo />
           <div>
             <h1 className="text-2xl font-bold text-white">Flatmates</h1>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Expense Tracker</p>
           </div>
         </div>
+
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">

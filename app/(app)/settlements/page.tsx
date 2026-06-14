@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/layout/header';
 import Link from 'next/link';
 import { useGroupId } from '@/lib/hooks/use-group';
+import NetworkGraph from '@/components/settlements/network-graph';
 
 interface Settlement {
   id: string;
@@ -19,6 +20,7 @@ export default function SettlementsPage() {
   const { groupId, loading: groupLoading } = useGroupId();
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
 
   useEffect(() => {
     if (!groupId) return;
@@ -44,6 +46,10 @@ export default function SettlementsPage() {
 
   const isLoading = groupLoading || loading;
 
+  const filteredSettlements = selectedPerson
+    ? settlements.filter(s => s.paid_by_name === selectedPerson || s.paid_to_name === selectedPerson)
+    : settlements;
+
   return (
     <div className="max-w-5xl mx-auto">
       <Header title="Settlements" subtitle="Payment records between flatmates" />
@@ -54,6 +60,29 @@ export default function SettlementsPage() {
         </p>
         <button className="btn-primary text-sm">+ Record Settlement</button>
       </div>
+
+      {/* Network Graph (5.2) */}
+      {!isLoading && settlements.length > 0 && (
+        <NetworkGraph 
+          settlements={settlements} 
+          selectedPerson={selectedPerson}
+          onSelectPerson={setSelectedPerson}
+        />
+      )}
+
+      {selectedPerson && (
+        <div className="flex items-center justify-between mb-4 bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3">
+          <span className="text-sm text-zinc-300">
+            Showing only settlements involving <span className="font-semibold text-white">{selectedPerson}</span>
+          </span>
+          <button 
+            onClick={() => setSelectedPerson(null)}
+            className="text-xs text-violet-400 hover:text-white transition-colors cursor-pointer font-medium"
+          >
+            Clear Filter ✕
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -90,7 +119,7 @@ export default function SettlementsPage() {
         </motion.div>
       ) : (
         <div className="space-y-3">
-          {settlements.map((s, i) => (
+          {filteredSettlements.map((s, i) => (
             <motion.div
               key={s.id}
               initial={{ opacity: 0, y: 15 }}

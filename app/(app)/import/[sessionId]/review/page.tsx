@@ -1,11 +1,36 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, use, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/layout/header';
 import CommitOverlay from '@/components/import/commit-overlay';
 import { useRouter } from 'next/navigation';
 import type { Anomaly } from '@/types';
+import confetti from 'canvas-confetti';
+
+function AnimatedCounter({ value }: { value: number }) {
+  const [displayValue, setDisplayValue] = useState(value);
+  useEffect(() => {
+    let start = displayValue;
+    const end = value;
+    if (start === end) return;
+    const duration = 400; // ms
+    const stepTime = Math.abs(Math.floor(duration / (end - start || 1)));
+    const timer = setInterval(() => {
+      if (start < end) {
+        start++;
+      } else {
+        start--;
+      }
+      setDisplayValue(start);
+      if (start === end) {
+        clearInterval(timer);
+      }
+    }, Math.max(stepTime, 20));
+    return () => clearInterval(timer);
+  }, [value]);
+  return <span>{displayValue}</span>;
+}
 
 const SEVERITY_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   error:   { bg: 'rgba(251,113,133,0.12)', color: '#fb7185', label: 'Error' },
@@ -42,10 +67,31 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
   const [pendingCount, setPendingCount] = useState(0);
   const [committing, setCommitting] = useState(false);
   const [bulkResolving, setBulkResolving] = useState<string | null>(null);
+  
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const confettiFiredRef = useRef(false);
 
   useEffect(() => {
     fetchAnomalies();
   }, [sessionId]);
+
+  useEffect(() => {
+    if (anomalies.length > 0 && pendingCount === 0 && !confettiFiredRef.current) {
+      confettiFiredRef.current = true;
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.65 },
+        colors: ['#8b5cf6', '#3b82f6', '#10b981', '#fbbf24', '#fb7185', '#06b6d4'],
+      });
+    } else if (pendingCount > 0) {
+      confettiFiredRef.current = false;
+    }
+  }, [pendingCount, anomalies.length]);
 
   const fetchAnomalies = async () => {
     try {
@@ -131,6 +177,8 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
     grouped[a.anomaly_type].push(a);
   }
 
+  const progressPercent = anomalies.length > 0 ? ((anomalies.length - pendingCount) / anomalies.length) * 100 : 0;
+
   return (
     <div className="max-w-5xl mx-auto">
       <Header title="Review Anomalies" subtitle={`${anomalies.length} anomalies found · ${pendingCount} pending`} />
@@ -138,21 +186,28 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
             Resolution Progress
           </span>
-          <span className="text-sm font-medium" style={{ color: 'var(--accent)' }}>
-            {anomalies.length - pendingCount}/{anomalies.length}
+          <span className="text-sm font-semibold text-zinc-100 flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+            <span className="text-violet-400"><AnimatedCounter value={anomalies.length - pendingCount} /></span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-400"><AnimatedCounter value={anomalies.length} /></span>
           </span>
         </div>
-        <div className="h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="h-3 rounded-full relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
           <motion.div
-            className="h-2 rounded-full"
-            style={{ background: 'var(--accent)' }}
+            className="h-3 rounded-full relative"
+            style={{
+              background: 'linear-gradient(to right, #8b5cf6, #3b82f6, #10b981)',
+              boxShadow: progressPercent > 0 ? '0 0 8px rgba(59, 130, 246, 0.4)' : 'none'
+            }}
             initial={{ width: 0 }}
-            animate={{ width: `${((anomalies.length - pendingCount) / anomalies.length) * 100}%` }}
-            transition={{ duration: 0.5 }}
-          />
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <div className="absolute inset-0 shimmer-glow" />
+          </motion.div>
         </div>
       </div>
 
@@ -330,68 +385,164 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
 
             {/* Anomaly cards */}
             <div className="space-y-3">
-              <AnimatePresence>
+              <AnimatePresence initial={false}>
                 {items.map((anomaly) => {
                   const sev = SEVERITY_STYLES[anomaly.severity] || SEVERITY_STYLES.info;
                   const isPending = anomaly.resolution === 'pending';
+                  const isExpanded = !!expandedIds[anomaly.id];
+                  
+                  const ringColor = anomaly.severity === 'error' ? 'rgba(251,113,133,0.35)'
+                                    : anomaly.severity === 'warning' ? 'rgba(251,191,36,0.35)'
+                                    : 'rgba(96,165,250,0.35)';
 
                   return (
                     <motion.div
                       key={anomaly.id}
                       layout
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="glass-card p-5"
-                      style={{
-                        borderLeft: `3px solid ${sev.color}`,
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{
                         opacity: isPending ? 1 : 0.6,
+                        y: 0,
+                      }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="glass-card p-5 transition-all duration-300 border-l-[3px]"
+                      style={{
+                        borderColor: isPending ? sev.color : 'rgba(255, 255, 255, 0.1)',
+                        background: isPending ? 'var(--card-bg)' : 'rgba(255, 255, 255, 0.01)',
                       }}
                     >
                       <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
+                        <div
+                          className="flex-1 cursor-pointer select-none"
+                          onClick={() => toggleExpand(anomaly.id)}
+                        >
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="badge" style={{ background: sev.bg, color: sev.color }}>
+                            <span
+                              className={`badge ${isPending ? 'pulse-ring' : ''}`}
+                              style={{
+                                background: isPending ? sev.bg : 'rgba(255,255,255,0.05)',
+                                color: isPending ? sev.color : '#a1a1aa',
+                                ['--ring-color' as string]: ringColor
+                              }}
+                            >
                               {sev.label}
                             </span>
                             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                               Row {anomaly.row_number}
                             </span>
+                            <span className="text-[10px] ml-auto flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity" style={{ color: 'var(--text-secondary)' }}>
+                              {isExpanded ? 'Collapse ▲' : 'Details ▼'}
+                            </span>
                           </div>
-                          <p className="text-sm text-white mb-1">{anomaly.description}</p>
-                          {anomaly.suggested_action && (
+                          
+                          <p className="text-sm text-white font-medium mb-1">{anomaly.description}</p>
+                          {anomaly.suggested_action && isPending && (
                             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                               💡 Suggested: {anomaly.suggested_action}
                             </p>
                           )}
+
+                          {/* Detail panel with expansion toggle */}
+                          <AnimatePresence initial={false}>
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                                className="overflow-hidden mt-3 pt-3 border-t border-white/5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-zinc-300">
+                                  {anomaly.raw_data && (
+                                    <>
+                                      <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                        <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Date</span>
+                                        <span className="font-mono text-zinc-300">{anomaly.raw_data.date || '—'}</span>
+                                      </div>
+                                      <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                        <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Description</span>
+                                        <span className="truncate block text-zinc-300" title={anomaly.raw_data.description}>{anomaly.raw_data.description || '—'}</span>
+                                      </div>
+                                      <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                        <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Paid By</span>
+                                        <span className="text-zinc-300">{anomaly.raw_data.paid_by || '—'}</span>
+                                      </div>
+                                      <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                        <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Amount</span>
+                                        <span className="text-zinc-300 font-semibold">{anomaly.raw_data.currency || 'INR'} {anomaly.raw_data.amount || '0'}</span>
+                                      </div>
+                                      
+                                      {anomaly.raw_data.split_with && (
+                                        <div className="col-span-2 sm:col-span-4 bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                          <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Split With</span>
+                                          <span className="text-zinc-400">{anomaly.raw_data.split_with}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {anomaly.raw_data.split_details && (
+                                        <div className="col-span-2 sm:col-span-4 bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                          <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Split Details</span>
+                                          <span className="text-zinc-400 font-mono">{anomaly.raw_data.split_details}</span>
+                                        </div>
+                                      )}
+
+                                      {anomaly.raw_data.notes && (
+                                        <div className="col-span-2 sm:col-span-4 bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                                          <span className="block text-[10px] text-zinc-500 font-semibold mb-0.5">Notes</span>
+                                          <span className="text-zinc-400 italic">"{anomaly.raw_data.notes}"</span>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Action buttons / Status Badge */}
                         {isPending ? (
                           <div className="flex gap-2 flex-shrink-0">
                             <button
-                              className="btn-primary text-xs px-3 py-2"
+                              className="btn-primary text-xs px-3.5 py-2 hover:scale-[1.02] active:scale-[0.98] transition-transform"
                               disabled={resolving === anomaly.id}
-                              onClick={() => handleResolve(anomaly.id, 'approved',
-                                anomaly.anomaly_type === 'SETTLEMENT_AS_EXPENSE' ? 'import_as_settlement'
-                                : anomaly.anomaly_type === 'DEPOSIT_AS_EXPENSE' ? 'import_as_settlement'
-                                : undefined
-                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleResolve(anomaly.id, 'approved',
+                                  anomaly.anomaly_type === 'SETTLEMENT_AS_EXPENSE' ? 'import_as_settlement'
+                                  : anomaly.anomaly_type === 'DEPOSIT_AS_EXPENSE' ? 'import_as_settlement'
+                                  : undefined
+                                );
+                              }}
                             >
                               {resolving === anomaly.id ? '...' : '✓ Accept'}
                             </button>
                             <button
-                              className="btn-secondary text-xs px-3 py-2"
+                              className="btn-secondary text-xs px-3.5 py-2 hover:scale-[1.02] active:scale-[0.98] transition-transform"
                               disabled={resolving === anomaly.id}
-                              onClick={() => handleResolve(anomaly.id, 'rejected', 'skip')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleResolve(anomaly.id, 'rejected', 'skip');
+                              }}
                             >
                               ✗ Skip
                             </button>
                           </div>
                         ) : (
-                          <span className="badge badge-success text-xs">
+                          <motion.span
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className={`badge text-xs px-3 py-1.5 rounded-lg font-medium border flex-shrink-0 ${
+                              anomaly.resolution === 'approved'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+                            }`}
+                          >
                             {anomaly.resolution === 'approved' ? '✓ Accepted' : '✗ Skipped'}
-                          </span>
+                          </motion.span>
                         )}
                       </div>
                     </motion.div>

@@ -49,11 +49,14 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+          {navItems.map((item, i) => {
             const isActive = pathname?.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href}>
                 <motion.div
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04, ease: 'easeOut', duration: 0.3 }}
                   whileHover={{ x: 4 }}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer relative ${
                     isActive ? 'text-white' : ''
@@ -66,6 +69,7 @@ export default function Sidebar() {
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
                       style={{ background: 'var(--accent)' }}
                     />
