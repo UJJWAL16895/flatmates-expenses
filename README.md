@@ -12,6 +12,10 @@ A full-stack, premium shared expenses web application for flatmates, built with 
 6. **Timeline-Aware Balances**: Net balance calculations strictly filter users based on their group join (`joined_at`) and leave (`left_at`) dates.
 7. **Premium Glassmorphic Design**: Harmonies of purple and teal, neon accents, dark mode by default, and micro-animations using Framer Motion.
 
+8. **Commit Loading Screen**: Animated full-screen overlay showing stage-by-step progress, elapsed time, and estimation with custom rotating humor.
+9. **Data Source Switching**: Seamlessly toggle between realistic sample data (auto-seeded on registration) and imported live data with top banners.
+10. **DiceBear Avatar Selection**: Registration flow featuring password confirmations and selection from 12 dynamic SVG avatars.
+
 ---
 
 ## Technical Stack
