@@ -61,8 +61,16 @@ async function runMigrations() {
 
       const sql = fs.readFileSync(filePath, 'utf8');
       
-      // Execute the SQL statements
-      await pool.query(sql);
+      // Remove line comments and split by semicolon to run statements individually
+      const cleanSql = sql.replace(/--.*$/gm, '');
+      const statements = cleanSql
+        .split(';')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      for (const statement of statements) {
+        await pool.query(statement);
+      }
       console.log(`Migration ${file} completed successfully.`);
     }
 
