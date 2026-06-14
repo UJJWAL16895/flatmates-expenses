@@ -6,26 +6,26 @@ import Header from '@/components/layout/header';
 import Link from 'next/link';
 
 const SAMPLE_EXPENSES = [
-  { id: '1', description: 'April Rent', amount: 48000, currency: 'INR', paid_by: 'Aisha', date: '2026-04-01', split_type: 'shares', split_count: 3, category: '🏠', splits: [
-    { name: 'Aisha', amount: 24000 }, { name: 'Rohan', amount: 12000 }, { name: 'Priya', amount: 12000 }
+  { id: '1', description: 'Rent & Maintenance', amount: 55000, currency: 'INR', paid_by: 'Kabir', date: '2026-05-01', split_type: 'shares', split_count: 3, category: '🏠', splits: [
+    { name: 'Kabir', amount: 27500 }, { name: 'Ananya', amount: 13750 }, { name: 'Vikram', amount: 13750 }
   ]},
-  { id: '2', description: 'Goa villa booking', amount: 540, currency: 'USD', paid_by: 'Dev', date: '2026-03-09', split_type: 'equal', split_count: 4, category: '🏖️', splits: [
-    { name: 'Aisha', amount: 135 }, { name: 'Rohan', amount: 135 }, { name: 'Priya', amount: 135 }, { name: 'Dev', amount: 135 }
+  { id: '2', description: 'Singapore Trip booking', amount: 600, currency: 'USD', paid_by: 'Divya', date: '2026-03-09', split_type: 'equal', split_count: 4, category: '🏖️', splits: [
+    { name: 'Kabir', amount: 150 }, { name: 'Ananya', amount: 150 }, { name: 'Vikram', amount: 150 }, { name: 'Divya', amount: 150 }
   ]},
-  { id: '3', description: 'Groceries DMart', amount: 1990, currency: 'INR', paid_by: 'Sam', date: '2026-04-15', split_type: 'equal', split_count: 4, category: '🛒', splits: [
-    { name: 'Aisha', amount: 498 }, { name: 'Rohan', amount: 498 }, { name: 'Priya', amount: 498 }, { name: 'Sam', amount: 496 }
+  { id: '3', description: 'Gourmet Groceries', amount: 4500, currency: 'INR', paid_by: 'Zara', date: '2026-05-10', split_type: 'equal', split_count: 4, category: '🛒', splits: [
+    { name: 'Kabir', amount: 1125 }, { name: 'Ananya', amount: 1125 }, { name: 'Vikram', amount: 1125 }, { name: 'Zara', amount: 1125 }
   ]},
-  { id: '4', description: 'Furniture for common room', amount: 12000, currency: 'INR', paid_by: 'Aisha', date: '2026-04-18', split_type: 'equal', split_count: 4, category: '🪑', splits: [
-    { name: 'Aisha', amount: 3000 }, { name: 'Rohan', amount: 3000 }, { name: 'Priya', amount: 3000 }, { name: 'Sam', amount: 3000 }
+  { id: '4', description: 'Living Room Smart TV', amount: 24000, currency: 'INR', paid_by: 'Kabir', date: '2026-05-18', split_type: 'equal', split_count: 4, category: '📺', splits: [
+    { name: 'Kabir', amount: 6000 }, { name: 'Ananya', amount: 6000 }, { name: 'Vikram', amount: 6000 }, { name: 'Zara', amount: 6000 }
   ]},
-  { id: '5', description: 'Housewarming drinks', amount: 3100, currency: 'INR', paid_by: 'Sam', date: '2026-04-10', split_type: 'equal', split_count: 4, category: '🍻', splits: [
-    { name: 'Aisha', amount: 775 }, { name: 'Rohan', amount: 775 }, { name: 'Priya', amount: 775 }, { name: 'Sam', amount: 775 }
+  { id: '5', description: 'Weekend House Party', amount: 8500, currency: 'INR', paid_by: 'Zara', date: '2026-05-15', split_type: 'equal', split_count: 4, category: '🍻', splits: [
+    { name: 'Kabir', amount: 2125 }, { name: 'Ananya', amount: 2125 }, { name: 'Vikram', amount: 2125 }, { name: 'Zara', amount: 2125 }
   ]},
-  { id: '6', description: 'Electricity Apr', amount: 1380, currency: 'INR', paid_by: 'Aisha', date: '2026-04-12', split_type: 'equal', split_count: 4, category: '⚡', splits: [
-    { name: 'Aisha', amount: 345 }, { name: 'Rohan', amount: 345 }, { name: 'Priya', amount: 345 }, { name: 'Sam', amount: 345 }
+  { id: '6', description: 'Electricity Bill', amount: 3200, currency: 'INR', paid_by: 'Kabir', date: '2026-05-12', split_type: 'equal', split_count: 4, category: '⚡', splits: [
+    { name: 'Kabir', amount: 800 }, { name: 'Ananya', amount: 800 }, { name: 'Vikram', amount: 800 }, { name: 'Zara', amount: 800 }
   ]},
-  { id: '7', description: 'Maid salary Apr', amount: 3000, currency: 'INR', paid_by: 'Priya', date: '2026-04-20', split_type: 'equal', split_count: 4, category: '🧹', splits: [
-    { name: 'Aisha', amount: 750 }, { name: 'Rohan', amount: 750 }, { name: 'Priya', amount: 750 }, { name: 'Sam', amount: 750 }
+  { id: '7', description: 'Weekly Cleaning Service', amount: 4000, currency: 'INR', paid_by: 'Vikram', date: '2026-05-20', split_type: 'equal', split_count: 4, category: '🧹', splits: [
+    { name: 'Kabir', amount: 1000 }, { name: 'Ananya', amount: 1000 }, { name: 'Vikram', amount: 1000 }, { name: 'Zara', amount: 1000 }
   ]},
 ];
 

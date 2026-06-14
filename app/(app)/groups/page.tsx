@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import Header from '@/components/layout/header';
 
 const MEMBERS = [
-  { name: 'Aisha', email: 'aisha@flat.io', role: 'Admin', joined: '2026-01-01', status: 'active', color: '#8b5cf6' },
-  { name: 'Rohan', email: 'rohan@flat.io', role: 'Member', joined: '2026-01-01', status: 'active', color: '#06b6d4' },
-  { name: 'Priya', email: 'priya@flat.io', role: 'Member', joined: '2026-01-01', status: 'active', color: '#f59e0b' },
-  { name: 'Sam', email: 'sam@flat.io', role: 'Member', joined: '2026-02-15', status: 'active', color: '#f97316' },
-  { name: 'Dev', email: 'dev@flat.io', role: 'Member', joined: '2026-01-01', left: '2026-03-31', status: 'left', color: '#ef4444' },
-  { name: 'Neha', email: 'neha@flat.io', role: 'Member', joined: '2026-01-01', left: '2026-02-28', status: 'left', color: '#ec4899' },
+  { name: 'Kabir', email: 'kabir@flatmates.app', role: 'Admin', joined: '2026-01-01', status: 'active', color: '#8b5cf6' },
+  { name: 'Ananya', email: 'ananya@flatmates.app', role: 'Member', joined: '2026-01-01', status: 'active', color: '#06b6d4' },
+  { name: 'Vikram', email: 'vikram@flatmates.app', role: 'Member', joined: '2026-01-01', status: 'active', color: '#f59e0b' },
+  { name: 'Zara', email: 'zara@flatmates.app', role: 'Member', joined: '2026-02-15', status: 'active', color: '#f97316' },
+  { name: 'Divya', email: 'divya@flatmates.app', role: 'Member', joined: '2026-01-01', left: '2026-03-31', status: 'left', color: '#ef4444' },
+  { name: 'Nitin', email: 'nitin@flatmates.app', role: 'Member', joined: '2026-01-01', left: '2026-02-28', status: 'left', color: '#ec4899' },
 ];
 
 export default function GroupsPage() {

@@ -4,16 +4,16 @@ import { motion } from 'framer-motion';
 import Header from '@/components/layout/header';
 
 const MEMBERS = [
-  { name: 'Aisha', color: '#8b5cf6', balance: 12450 },
-  { name: 'Rohan', color: '#06b6d4', balance: -8200 },
-  { name: 'Priya', color: '#f59e0b', balance: -3100 },
-  { name: 'Sam', color: '#f97316', balance: -1150 },
+  { name: 'Kabir', color: '#8b5cf6', balance: 18500 },
+  { name: 'Ananya', color: '#06b6d4', balance: -9200 },
+  { name: 'Vikram', color: '#f59e0b', balance: -5800 },
+  { name: 'Zara', color: '#f97316', balance: -3500 },
 ];
 
 const SETTLEMENTS = [
-  { from: 'Rohan', to: 'Aisha', amount: 8200 },
-  { from: 'Priya', to: 'Aisha', amount: 3100 },
-  { from: 'Sam', to: 'Aisha', amount: 1150 },
+  { from: 'Ananya', to: 'Kabir', amount: 9200 },
+  { from: 'Vikram', to: 'Kabir', amount: 5800 },
+  { from: 'Zara', to: 'Kabir', amount: 3500 },
 ];
 
 export default function BalancesPage() {
