@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 
 interface CommitOverlayProps {
   sessionId: string;
@@ -46,6 +47,11 @@ const ROTATING_MESSAGES = [
 type OverlayState = 'committing' | 'success' | 'error';
 
 export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }: CommitOverlayProps) {
+  const { data: session } = useSession();
+  const avatarUrl = (session?.user as { avatarUrl?: string } | undefined)?.avatarUrl;
+  const avatarColor = (session?.user as { avatarColor?: string } | undefined)?.avatarColor || 'var(--accent)';
+  const userName = session?.user?.name || 'User';
+
   const [state, setState] = useState<OverlayState>('committing');
   const [progress, setProgress] = useState<ProgressData>({
     step: 0, total_steps: 5, message: 'Starting...', status: 'processing',
@@ -59,6 +65,7 @@ export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const msgRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasStartedRef = useRef(false);
+  const [attempt, setAttempt] = useState(0);
 
   // Lock body scroll
   useEffect(() => {
@@ -162,7 +169,7 @@ export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [isOpen, sessionId, pollProgress, onComplete, onError]);
+  }, [isOpen, sessionId, pollProgress, onComplete, onError, attempt]);
 
   if (!isOpen) return null;
 
@@ -199,8 +206,8 @@ export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }
             <>
               {/* Spinner */}
               <div className="flex justify-center mb-6">
-                <div className="relative w-16 h-16">
-                  <svg className="w-16 h-16 animate-spin" viewBox="0 0 64 64">
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  <svg className="w-16 h-16 animate-spin absolute" viewBox="0 0 64 64">
                     <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.06)"
                       strokeWidth="4" />
                     <circle cx="32" cy="32" r="28" fill="none"
@@ -214,6 +221,19 @@ export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }
                       </linearGradient>
                     </defs>
                   </svg>
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={avatarUrl}
+                      alt="User avatar"
+                      className="w-10 h-10 rounded-full object-cover bg-zinc-800 relative z-10"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold relative z-10"
+                      style={{ background: avatarColor, color: 'white' }}>
+                      {userName[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -428,6 +448,7 @@ export default function CommitOverlay({ sessionId, isOpen, onComplete, onError }
                     setState('committing');
                     hasStartedRef.current = false;
                     setProgress({ step: 0, total_steps: 5, message: 'Starting...', status: 'processing', rows_done: 0, rows_total: 0 });
+                    setAttempt((prev) => prev + 1);
                   }}
                   className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all"
                   style={{

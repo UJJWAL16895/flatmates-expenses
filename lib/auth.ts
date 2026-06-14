@@ -70,7 +70,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/login',
+    signIn: '/register',
     error: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
