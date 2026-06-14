@@ -10,17 +10,17 @@
 
 -- Password for all seed users: "password123"
 -- bcrypt hash of "password123" with 10 rounds
--- $2b$10$rQZ8kHw5Y5z5z5z5z5z5zOWGq5Z5z5z5z5z5z5z5z5z5z5z5z5z
+-- $2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW
 
 -- Insert users with deterministic UUIDs for easy referencing
 INSERT INTO users (id, email, name, password_hash, avatar_color) VALUES
-  ('a1111111-1111-1111-1111-111111111111', 'aisha@flatmates.app', 'Aisha', '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#8b5cf6'),
-  ('b2222222-2222-2222-2222-222222222222', 'rohan@flatmates.app', 'Rohan', '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#06b6d4'),
-  ('c3333333-3333-3333-3333-333333333333', 'priya@flatmates.app', 'Priya', '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#f59e0b'),
-  ('d4444444-4444-4444-4444-444444444444', 'meera@flatmates.app', 'Meera', '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#ec4899'),
-  ('e5555555-5555-5555-5555-555555555555', 'dev@flatmates.app',   'Dev',   '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#10b981'),
-  ('f6666666-6666-6666-6666-666666666666', 'sam@flatmates.app',   'Sam',   '$2b$10$EIXkPQxZmTpZ3sJzDPQz4eHxkpQsLqJxLJ6Y3Rz3F7dQ3sP1E7Uu6', '#f97316')
-ON CONFLICT (email) DO NOTHING;
+  ('a1111111-1111-1111-1111-111111111111', 'aisha@flatmates.app', 'Aisha', '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#8b5cf6'),
+  ('b2222222-2222-2222-2222-222222222222', 'rohan@flatmates.app', 'Rohan', '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#06b6d4'),
+  ('c3333333-3333-3333-3333-333333333333', 'priya@flatmates.app', 'Priya', '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#f59e0b'),
+  ('d4444444-4444-4444-4444-444444444444', 'meera@flatmates.app', 'Meera', '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#ec4899'),
+  ('e5555555-5555-5555-5555-555555555555', 'dev@flatmates.app',   'Dev',   '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#10b981'),
+  ('f6666666-6666-6666-6666-666666666666', 'sam@flatmates.app',   'Sam',   '$2b$10$5iPoBkXLC8QlvHMQekUyPe.AQWPH0whFeejAhKEC5TULf9s5IGMNW', '#f97316')
+ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 -- Create default group
 INSERT INTO groups (id, name, created_by) VALUES
