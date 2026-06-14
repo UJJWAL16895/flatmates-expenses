@@ -5,11 +5,12 @@ import { getGroups } from '@/lib/db/groups';
 import { getExpensesByGroup } from '@/lib/db/expenses';
 import { getGroupBalances } from '@/lib/db/balances';
 import { getSettlementsByGroup } from '@/lib/db/settlements';
+import { getActiveGroupId, setActiveGroupId } from '@/lib/db/users';
 import pool from '@/lib/db/connection';
 
 /**
  * Dashboard API — aggregates expenses, balances, and settlements
- * for the user's first group into a single response.
+ * for the user's active group into a single response.
  */
 export async function GET() {
   try {
@@ -19,9 +20,20 @@ export async function GET() {
     }
 
     const userId = (session.user as { id: string }).id;
-    const groups = await getGroups(userId);
 
-    if (groups.length === 0) {
+    // Resolve active group
+    let groupId = await getActiveGroupId(userId);
+
+    if (!groupId) {
+      // Fallback: pick the first group the user belongs to
+      const groups = await getGroups(userId);
+      if (groups.length > 0) {
+        groupId = groups[0].id;
+        await setActiveGroupId(userId, groupId);
+      }
+    }
+
+    if (!groupId) {
       return NextResponse.json({
         success: true,
         data: {
@@ -34,11 +46,19 @@ export async function GET() {
           balances: [],
           has_completed_import: false,
           last_import_at: null,
+          is_sample: false,
+          group_name: null,
+          group_id: null,
         },
       });
     }
 
-    const groupId = groups[0].id;
+    // Get group metadata (including is_sample)
+    const groupMeta = await pool.query(
+      'SELECT id, name, is_sample FROM groups WHERE id = $1',
+      [groupId]
+    );
+    const groupInfo = groupMeta.rows[0];
 
     // Fetch all data in parallel (including import status)
     const [expenses, balanceData, settlements, importResult] = await Promise.all([
@@ -46,7 +66,7 @@ export async function GET() {
       getGroupBalances(groupId),
       getSettlementsByGroup(groupId),
       pool.query(
-        `SELECT id, uploaded_at, imported_count FROM import_sessions
+        `SELECT id, uploaded_at, imported_count, filename FROM import_sessions
          WHERE group_id = $1 AND status = 'done'
          ORDER BY uploaded_at DESC LIMIT 1`,
         [groupId]
@@ -77,6 +97,11 @@ export async function GET() {
         balances: balanceData.balances,
         has_completed_import: !!completedImport,
         last_import_at: completedImport?.uploaded_at || null,
+        import_filename: completedImport?.filename || null,
+        import_row_count: completedImport?.imported_count || null,
+        is_sample: groupInfo?.is_sample || false,
+        group_name: groupInfo?.name || null,
+        group_id: groupId,
       },
     });
   } catch (error) {

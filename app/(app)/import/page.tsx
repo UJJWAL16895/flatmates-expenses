@@ -14,6 +14,7 @@ type LogLine = {
 
 interface ImportSessionHistory {
   id: string;
+  group_id: string;
   filename: string;
   status: string;
   total_rows: number;
@@ -40,6 +41,7 @@ export default function ImportPage() {
   const [history, setHistory] = useState<ImportSessionHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
 
   // Fetch import history on mount
   useEffect(() => {
@@ -420,11 +422,39 @@ export default function ImportPage() {
                                 </Link>
                               )}
                               {s.status === 'done' && (
-                                <Link href={`/import/${s.id}/report`}>
-                                  <button className="btn-primary text-xs px-4 py-2">
-                                    📊 View Report
+                                <>
+                                  <Link href={`/import/${s.id}/report`}>
+                                    <button className="btn-primary text-xs px-4 py-2">
+                                      📊 View Report
+                                    </button>
+                                  </Link>
+                                  <button
+                                    className="text-xs px-4 py-2 rounded-xl font-medium transition-all"
+                                    style={{
+                                      background: 'rgba(16,185,129,0.1)',
+                                      border: '1px solid rgba(16,185,129,0.25)',
+                                      color: '#34d399',
+                                    }}
+                                    disabled={switchingId === s.id}
+                                    onClick={async () => {
+                                      setSwitchingId(s.id);
+                                      try {
+                                        await fetch('/api/user/active-group', {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ group_id: s.group_id }),
+                                        });
+                                        router.push('/dashboard');
+                                      } finally {
+                                        setSwitchingId(null);
+                                      }
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(16,185,129,0.18)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(16,185,129,0.1)'; }}
+                                  >
+                                    {switchingId === s.id ? 'Switching...' : '🔄 Switch to This Data'}
                                   </button>
-                                </Link>
+                                </>
                               )}
                             </div>
                           </div>

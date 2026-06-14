@@ -23,6 +23,7 @@ export default function Sidebar() {
   const userName = session?.user?.name || 'User';
   const userEmail = session?.user?.email || '';
   const avatarColor = (session?.user as { avatarColor?: string } | undefined)?.avatarColor || 'var(--accent)';
+  const avatarUrl = (session?.user as { avatarUrl?: string } | undefined)?.avatarUrl;
   const userInitial = userName[0]?.toUpperCase() || 'U';
 
   const handleLogout = () => {
@@ -81,10 +82,19 @@ export default function Sidebar() {
         <div className="p-4 mx-3 mb-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{ background: avatarColor, color: 'white' }}>
-                {userInitial}
-              </div>
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt="User avatar"
+                  className="w-9 h-9 rounded-full object-cover bg-zinc-800"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: avatarColor, color: 'white' }}>
+                  {userInitial}
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium text-white">{userName}</p>
                 <p className="text-xs truncate max-w-[120px]" style={{ color: 'var(--text-muted)' }}>

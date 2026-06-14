@@ -9,6 +9,8 @@ export interface User {
   name: string;
   password_hash: string;
   avatar_color: string;
+  avatar_url: string | null;
+  active_group_id: string | null;
   created_at: string;
 }
 
@@ -39,6 +41,7 @@ export interface GroupMember {
   user_name?: string;
   user_email?: string;
   avatar_color?: string;
+  avatar_url?: string | null;
 }
 
 export interface MembershipRange {

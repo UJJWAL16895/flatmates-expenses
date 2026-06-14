@@ -79,6 +79,51 @@ export async function updateImportSessionStatus(
   );
 }
 
+export async function updateImportProgress(
+  sessionId: string,
+  step: number,
+  totalSteps: number,
+  message: string,
+  rowsDone?: number,
+  rowsTotal?: number
+): Promise<void> {
+  await pool.query(
+    `UPDATE import_sessions
+     SET progress_step = $2,
+         progress_total = $3,
+         progress_message = $4,
+         progress_updated_at = NOW()
+     WHERE id = $1`,
+    [sessionId, step, totalSteps, message]
+  );
+}
+
+export async function getImportProgress(sessionId: string): Promise<{
+  step: number;
+  total_steps: number;
+  message: string;
+  status: string;
+  rows_done: number;
+  rows_total: number;
+} | null> {
+  const result = await pool.query(
+    `SELECT progress_step, progress_total, progress_message,
+            status, imported_count, rejected_count, total_rows
+     FROM import_sessions WHERE id = $1`,
+    [sessionId]
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    step: row.progress_step || 0,
+    total_steps: row.progress_total || 5,
+    message: row.progress_message || '',
+    status: row.status,
+    rows_done: (row.imported_count || 0) + (row.rejected_count || 0),
+    rows_total: row.total_rows || 0,
+  };
+}
+
 // ---- Import Rows ----
 
 export async function createImportRow(

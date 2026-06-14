@@ -41,6 +41,11 @@ interface DashboardData {
   balances: DashboardBalance[];
   has_completed_import: boolean;
   last_import_at: string | null;
+  import_filename: string | null;
+  import_row_count: number | null;
+  is_sample: boolean;
+  group_name: string | null;
+  group_id: string | null;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -110,62 +115,86 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [switching, setSwitching] = useState(false);
+
+  const fetchDashboard = async () => {
+    try {
+      const res = await fetch('/api/dashboard');
+      const json = await res.json();
+      if (json.success) {
+        setData(json.data);
+      } else {
+        setError(json.error || 'Failed to load dashboard');
+      }
+    } catch {
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function fetchDashboard() {
-      try {
-        const res = await fetch('/api/dashboard');
-        const json = await res.json();
-        if (!cancelled) {
-          if (json.success) {
-            setData(json.data);
-          } else {
-            setError(json.error || 'Failed to load dashboard');
-          }
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setError('Failed to load dashboard data');
-          setLoading(false);
-        }
-      }
-    }
-
     fetchDashboard();
-    return () => { cancelled = true; };
   }, []);
 
   const hasData = data && (data.recent_expenses.length > 0 || data.balances.length > 0);
 
-  // Data source: 'live' = completed import, 'sample' = data but no import, 'empty' = no data
-  const dataSource: 'live' | 'sample' | 'empty' = data?.has_completed_import
-    ? 'live'
-    : hasData
-      ? 'sample'
-      : 'empty';
+  // Data source: 'live' = has completed import and NOT sample group, 'sample' = is_sample group, 'empty' = no data
+  const dataSource: 'live' | 'sample' | 'empty' = data?.is_sample
+    ? 'sample'
+    : data?.has_completed_import
+      ? 'live'
+      : hasData
+        ? 'sample'
+        : 'empty';
+
+  const switchGroup = async (targetGroupId: string) => {
+    setSwitching(true);
+    try {
+      await fetch('/api/user/active-group', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id: targetGroupId }),
+      });
+      setLoading(true);
+      await fetchDashboard();
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const switchToSample = async () => {
+    try {
+      const res = await fetch('/api/groups');
+      const json = await res.json();
+      if (json.success) {
+        const sampleGroup = json.data.find((g: { is_sample: boolean }) => g.is_sample);
+        if (sampleGroup) {
+          await switchGroup(sampleGroup.id);
+        }
+      }
+    } catch {
+      // silently handle
+    }
+  };
 
   const bannerConfig = {
     live: {
       bg: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.08))',
       border: '1px solid rgba(16,185,129,0.3)',
       icon: '✅',
-      title: 'Live Data — CSV Imported',
+      title: `Live Data — ${data?.import_filename || 'CSV Imported'}`,
       subtitle: data?.last_import_at
-        ? `Last import: ${new Date(data.last_import_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}` 
+        ? `Imported ${new Date(data.last_import_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}${data.import_row_count ? ` • ${data.import_row_count} rows` : ''}`
         : 'Showing real data from your imported CSV',
-      btnText: 'Import More →',
       dotColor: '#10b981',
     },
     sample: {
       bg: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))',
       border: '1px solid rgba(245,158,11,0.3)',
-      icon: '⚠️',
-      title: 'Sample Data — No CSV Imported Yet',
-      subtitle: 'This data was added manually. Import your CSV for complete expense tracking.',
-      btnText: 'Import CSV →',
+      icon: '🧪',
+      title: 'Sample Data — Demo Mode',
+      subtitle: 'This is example data to help you explore the app. Import your CSV to see your real expenses.',
       dotColor: '#f59e0b',
     },
     empty: {
@@ -174,7 +203,6 @@ export default function DashboardPage() {
       icon: '📥',
       title: 'Import your expense CSV',
       subtitle: 'Upload Expenses Export.csv to detect anomalies and import data',
-      btnText: 'Import CSV →',
       dotColor: '#8b5cf6',
     },
   };
@@ -208,9 +236,39 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <Link href="/import">
-            <button className="btn-primary text-sm">{banner.btnText}</button>
-          </Link>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {dataSource === 'live' && (
+              <button
+                className="text-xs px-3 py-2 rounded-xl transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'var(--text-secondary)',
+                }}
+                onClick={switchToSample}
+                disabled={switching}
+              >
+                {switching ? '...' : 'Switch to Sample'}
+              </button>
+            )}
+            {dataSource === 'live' && (
+              <Link href="/import">
+                <button className="text-xs px-3 py-2 rounded-xl transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-secondary)',
+                  }}>
+                  Import History
+                </button>
+              </Link>
+            )}
+            <Link href="/import">
+              <button className="btn-primary text-sm">
+                {dataSource === 'sample' ? 'Import Your Data →' : dataSource === 'live' ? 'View Report' : 'Import CSV →'}
+              </button>
+            </Link>
+          </div>
         </motion.div>
       )}
 

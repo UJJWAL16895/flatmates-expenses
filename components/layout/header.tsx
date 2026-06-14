@@ -9,6 +9,7 @@ export default function Header({ title, subtitle }: { title: string; subtitle?: 
 
   const userName = session?.user?.name || 'User';
   const avatarColor = (session?.user as { avatarColor?: string } | undefined)?.avatarColor || 'var(--accent)';
+  const avatarUrl = (session?.user as { avatarUrl?: string } | undefined)?.avatarUrl;
 
   return (
     <header className="flex items-center justify-between mb-8">
@@ -28,10 +29,19 @@ export default function Header({ title, subtitle }: { title: string; subtitle?: 
           onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
         >
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{ background: avatarColor, color: 'white' }}>
-            {userName[0]?.toUpperCase() || 'U'}
-          </div>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt="User avatar"
+              className="w-7 h-7 rounded-full object-cover bg-zinc-800"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: avatarColor, color: 'white' }}>
+              {userName[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
           <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{userName}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
             style={{ color: 'var(--text-muted)', transform: showMenu ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>

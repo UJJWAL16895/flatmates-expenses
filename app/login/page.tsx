@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -170,8 +171,15 @@ export default function LoginPage() {
           </motion.button>
         </form>
 
+        <div className="mt-6 text-center text-sm">
+          <span style={{ color: 'var(--text-muted)' }}>Don&apos;t have an account? </span>
+          <Link href="/register" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+            Register
+          </Link>
+        </div>
+
         {/* Demo accounts */}
-        <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--border-color)' }}>
+        <div className="mt-6 pt-6" style={{ borderTop: '1px solid var(--border-color)' }}>
           <p className="text-xs text-center mb-3" style={{ color: 'var(--text-muted)' }}>
             Demo accounts (click to log in)
           </p>

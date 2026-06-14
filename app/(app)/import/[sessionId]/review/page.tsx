@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/layout/header';
+import CommitOverlay from '@/components/import/commit-overlay';
 import { useRouter } from 'next/navigation';
 import type { Anomaly } from '@/types';
 
@@ -87,23 +88,24 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
     }
   };
 
-  const handleCommit = async () => {
-    setCommitting(true);
-    try {
-      const res = await fetch(`/api/import/${sessionId}/commit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(`/import/${sessionId}/report`);
-      }
-    } catch (err) {
-      console.error('Failed to commit:', err);
-    } finally {
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  const handleCommit = () => {
+    setShowOverlay(true);
+  };
+
+  const handleCommitComplete = useCallback(() => {
+    setTimeout(() => {
+      router.push(`/import/${sessionId}/report`);
+    }, 2500);
+  }, [router, sessionId]);
+
+  const handleCommitError = useCallback((error: string) => {
+    if (error === 'cancelled') {
+      setShowOverlay(false);
       setCommitting(false);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -296,10 +298,18 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
             onClick={handleCommit}
             disabled={committing}
           >
-            {committing ? 'Committing...' : '🚀 Commit Import'}
+            🚀 Confirm Import
           </button>
         </motion.div>
       )}
+
+      {/* Commit Overlay */}
+      <CommitOverlay
+        sessionId={sessionId}
+        isOpen={showOverlay}
+        onComplete={handleCommitComplete}
+        onError={handleCommitError}
+      />
 
       {/* Anomaly Groups */}
       <div className="space-y-6">

@@ -16,7 +16,7 @@ import { getGroups } from '@/lib/db/groups';
 const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000000';
 
 /**
- * GET /api/import — Return import session history for the user's group
+ * GET /api/import — Return import session history for all of the user's groups
  */
 export async function GET() {
   try {
@@ -27,11 +27,18 @@ export async function GET() {
 
     const userId = (session.user as { id: string }).id;
     const groups = await getGroups(userId);
-    const groupId = groups[0]?.id || DEFAULT_GROUP_ID;
 
-    const sessions = await getImportSessionsByGroup(groupId);
+    // Gather sessions across all groups
+    const allSessions = [];
+    for (const g of groups) {
+      const sessions = await getImportSessionsByGroup(g.id);
+      allSessions.push(...sessions);
+    }
 
-    return NextResponse.json({ success: true, data: sessions });
+    // Sort by newest first
+    allSessions.sort((a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime());
+
+    return NextResponse.json({ success: true, data: allSessions });
   } catch (error) {
     console.error('GET /api/import error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

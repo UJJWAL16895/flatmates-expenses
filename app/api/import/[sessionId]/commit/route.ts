@@ -11,6 +11,7 @@ import {
   getAnomaliesBySession,
   updateImportSessionStatus,
   updateImportRowStatus,
+  updateImportProgress,
 } from '@/lib/db/import';
 import { createExpense, createExpenseSplit } from '@/lib/db/expenses';
 import { createSettlement } from '@/lib/db/settlements';
@@ -57,11 +58,18 @@ export async function POST(
 
     // Get rows
     const rows = await getImportRows(sessionId);
+    const totalSteps = 5;
+
+    // Step 1: Validating data
+    await updateImportProgress(sessionId, 1, totalSteps, 'Validating data');
 
     let importedCount = 0;
     let rejectedCount = 0;
     let modifiedCount = 0;
     let settlementsCreated = 0;
+
+    // Step 2: Creating expenses
+    await updateImportProgress(sessionId, 2, totalSteps, 'Creating expenses');
 
     for (const row of rows) {
       // Skip rejected rows
@@ -112,6 +120,11 @@ export async function POST(
             await updateImportRowStatus(row.id, 'rejected');
           }
           continue;
+        }
+
+        // Step 3: Recording splits (update mid-loop)
+        if (importedCount === Math.floor(rows.length / 3)) {
+          await updateImportProgress(sessionId, 3, totalSteps, 'Recording splits');
         }
 
         // Resolve user IDs
@@ -222,6 +235,12 @@ export async function POST(
         await updateImportRowStatus(row.id, 'rejected');
       }
     }
+
+    // Step 4: Processing settlements
+    await updateImportProgress(sessionId, 4, totalSteps, 'Processing settlements');
+
+    // Step 5: Finalizing
+    await updateImportProgress(sessionId, 5, totalSteps, 'Finalizing');
 
     // Update session
     await updateImportSessionStatus(sessionId, 'done', {

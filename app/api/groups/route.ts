@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { createGroup, getGroups } from '@/lib/db/groups';
+import { createGroup } from '@/lib/db/groups';
+import pool from '@/lib/db/connection';
 import { createGroupSchema } from '@/lib/validations/group.schema';
 
 export async function GET() {
@@ -12,9 +13,15 @@ export async function GET() {
     }
 
     const userId = (session.user as { id: string }).id;
-    const groups = await getGroups(userId);
+    const result = await pool.query(
+      `SELECT g.*, g.is_sample FROM groups g
+       JOIN group_members gm ON gm.group_id = g.id
+       WHERE gm.user_id = $1 AND g.deleted_at IS NULL
+       ORDER BY g.is_sample ASC, g.created_at DESC`,
+      [userId]
+    );
 
-    return NextResponse.json({ success: true, data: groups });
+    return NextResponse.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('GET /api/groups error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

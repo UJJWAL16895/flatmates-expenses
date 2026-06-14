@@ -17,7 +17,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const result = await pool.query(
-          'SELECT id, email, name, password_hash, avatar_color FROM users WHERE email = $1',
+          'SELECT id, email, name, password_hash, avatar_color, avatar_url FROM users WHERE email = $1',
           [credentials.email]
         );
 
@@ -40,6 +40,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           avatarColor: user.avatar_color,
+          avatarUrl: user.avatar_url,
         };
       },
     }),
@@ -53,6 +54,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.avatarColor = (user as { avatarColor?: string }).avatarColor;
+        token.avatarUrl = (user as { avatarUrl?: string }).avatarUrl;
       }
       return token;
     },
@@ -61,6 +63,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as { id: string }).id = token.id as string;
         (session.user as { avatarColor: string }).avatarColor =
           token.avatarColor as string;
+        (session.user as { avatarUrl?: string }).avatarUrl =
+          token.avatarUrl as string;
       }
       return session;
     },
