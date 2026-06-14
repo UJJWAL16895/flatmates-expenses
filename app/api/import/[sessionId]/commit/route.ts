@@ -104,7 +104,7 @@ export async function POST(
 
           if (payerUser && payeeUser) {
             await createSettlement(
-              DEFAULT_GROUP_ID,
+              importSession.group_id,
               payerUser.id,
               payeeUser.id,
               Math.abs(parsed.amount),
@@ -171,7 +171,7 @@ export async function POST(
 
         // Create expense
         const expense = await createExpense(
-          DEFAULT_GROUP_ID,
+          importSession.group_id,
           parsed.description,
           amount,
           currency,

@@ -12,6 +12,7 @@ import {
 } from '@/lib/db/import';
 import { getMembershipRanges } from '@/lib/db/groups';
 import { getGroups } from '@/lib/db/groups';
+import pool from '@/lib/db/connection';
 
 const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -65,6 +66,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Ensure the user is a member of this group
+    await pool.query(
+      `INSERT INTO group_members (group_id, user_id, joined_at)
+       VALUES ($1, $2, '2026-02-01')
+       ON CONFLICT (group_id, user_id, joined_at) DO NOTHING`,
+      [groupId, userId]
+    );
 
     // Read CSV content
     const csvText = await file.text();

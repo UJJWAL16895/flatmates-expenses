@@ -10,6 +10,26 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
   const { sessionId } = use(params);
   const [report, setReport] = useState<ImportReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
+
+  const handleGoToDashboard = async () => {
+    if (!report?.session?.group_id) {
+      window.location.href = '/dashboard';
+      return;
+    }
+    setRedirecting(true);
+    try {
+      await fetch('/api/user/active-group', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_id: report.session.group_id }),
+      });
+    } catch {
+      // ignore
+    } finally {
+      window.location.href = '/dashboard';
+    }
+  };
 
   useEffect(() => {
     fetch(`/api/import/${sessionId}/report`)
@@ -266,9 +286,13 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
         <Link href="/import">
           <button className="btn-secondary text-sm">← Back to Import</button>
         </Link>
-        <Link href="/dashboard">
-          <button className="btn-primary text-sm">Go to Dashboard →</button>
-        </Link>
+        <button
+          onClick={handleGoToDashboard}
+          disabled={redirecting}
+          className="btn-primary text-sm"
+        >
+          {redirecting ? 'Redirecting...' : 'Go to Dashboard →'}
+        </button>
       </motion.div>
     </div>
   );
