@@ -39,6 +39,18 @@ export async function getImportSession(id: string): Promise<ImportSession | null
   return result.rows[0] || null;
 }
 
+export async function getImportSessionsByGroup(groupId: string): Promise<(ImportSession & { uploaded_by_name?: string })[]> {
+  const result = await pool.query(
+    `SELECT s.*, u.name AS uploaded_by_name
+     FROM import_sessions s
+     LEFT JOIN users u ON u.id = s.uploaded_by
+     WHERE s.group_id = $1
+     ORDER BY s.uploaded_at DESC`,
+    [groupId]
+  );
+  return result.rows;
+}
+
 export async function updateImportSessionStatus(
   id: string,
   status: string,

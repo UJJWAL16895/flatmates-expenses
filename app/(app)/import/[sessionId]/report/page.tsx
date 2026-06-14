@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { motion } from 'framer-motion';
 import Header from '@/components/layout/header';
+import Link from 'next/link';
 import type { ImportReport } from '@/types';
 
 export default function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
@@ -21,11 +22,64 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
 
   const downloadJSON = () => {
     if (!report) return;
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const exportData = {
+      _meta: {
+        generated_at: new Date().toISOString(),
+        app: 'Flatmates Expense Tracker',
+        version: '1.0.0',
+        session_id: sessionId,
+        filename: report.session.filename,
+      },
+      summary: report.summary,
+      rows: report.rows.map((row) => ({
+        row_number: row.row_number,
+        description: row.raw_data?.description || '',
+        amount: row.raw_data?.amount || '',
+        paid_by: row.raw_data?.paid_by || '',
+        date: row.raw_data?.date || '',
+        status: row.status,
+        action_taken: row.action_taken,
+        anomaly_count: row.anomalies.length,
+        anomalies: row.anomalies.map((a) => ({
+          type: a.anomaly_type,
+          severity: a.severity,
+          description: a.description,
+          resolution: a.resolution,
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `import-report-${sessionId.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadCSV = () => {
+    if (!report) return;
+    const headers = ['Row', 'Description', 'Amount', 'Paid By', 'Date', 'Status', 'Action', 'Anomalies'];
+    const csvRows = [headers.join(',')];
+    for (const row of report.rows) {
+      const desc = (row.raw_data?.description || '').replace(/"/g, '""');
+      const anomalyList = row.anomalies.map((a) => a.anomaly_type).join('; ');
+      csvRows.push([
+        row.row_number,
+        `"${desc}"`,
+        row.raw_data?.amount || '',
+        row.raw_data?.paid_by || '',
+        row.raw_data?.date || '',
+        row.status,
+        row.action_taken,
+        `"${anomalyList}"`,
+      ].join(','));
+    }
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `import-report-${sessionId.slice(0, 8)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -77,6 +131,60 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
         ))}
       </div>
 
+      {/* Download Actions Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-8 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4"
+        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}
+      >
+        <div>
+          <p className="text-sm font-medium text-white">Download Report</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Export this import report for your records
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={downloadJSON}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+            style={{
+              background: 'rgba(139,92,246,0.1)',
+              border: '1px solid rgba(139,92,246,0.25)',
+              color: '#a78bfa',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(139,92,246,0.1)'; }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download JSON
+          </button>
+          <button
+            onClick={downloadCSV}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+            style={{
+              background: 'rgba(52,211,153,0.1)',
+              border: '1px solid rgba(52,211,153,0.25)',
+              color: '#34d399',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.18)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.1)'; }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download CSV
+          </button>
+        </div>
+      </motion.div>
+
       {/* Anomalies breakdown */}
       {Object.keys(summary.anomalies_by_type).length > 0 && (
         <motion.div
@@ -109,9 +217,9 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-white">Row-by-Row Log</h3>
-          <button className="btn-secondary text-xs" onClick={downloadJSON}>
-            📥 Download JSON
-          </button>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            {report.rows.length} rows
+          </span>
         </div>
 
         <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -147,6 +255,22 @@ export default function ReportPage({ params }: { params: Promise<{ sessionId: st
           ))}
         </div>
       </motion.div>
+
+      {/* Navigation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        className="flex items-center justify-between"
+      >
+        <Link href="/import">
+          <button className="btn-secondary text-sm">← Back to Import</button>
+        </Link>
+        <Link href="/dashboard">
+          <button className="btn-primary text-sm">Go to Dashboard →</button>
+        </Link>
+      </motion.div>
     </div>
   );
 }
+

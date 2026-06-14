@@ -40,6 +40,7 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
   const [resolving, setResolving] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [committing, setCommitting] = useState(false);
+  const [bulkResolving, setBulkResolving] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAnomalies();
@@ -152,6 +153,127 @@ export default function ReviewPage({ params }: { params: Promise<{ sessionId: st
           />
         </div>
       </div>
+
+      {/* Bulk Action Buttons */}
+      {pendingCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-4 rounded-2xl"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)' }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-medium text-white">Bulk Actions</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                Resolve multiple anomalies at once
+              </p>
+            </div>
+            {bulkResolving && (
+              <span className="text-xs animate-pulse" style={{ color: 'var(--accent)' }}>
+                Processing...
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                background: 'rgba(251,191,36,0.1)',
+                border: '1px solid rgba(251,191,36,0.25)',
+                color: '#fbbf24',
+              }}
+              disabled={bulkResolving !== null}
+              onClick={async () => {
+                setBulkResolving('auto_fix_warnings');
+                try {
+                  await fetch(`/api/import/${sessionId}/resolve/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'auto_fix_warnings' }),
+                  });
+                  await fetchAnomalies();
+                } finally {
+                  setBulkResolving(null);
+                }
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(251,191,36,0.18)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(251,191,36,0.1)'; }}
+            >
+              {bulkResolving === 'auto_fix_warnings' ? (
+                <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>⚡</span>
+              )}
+              Auto-Fix All Warnings
+            </button>
+
+            <button
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                background: 'rgba(96,165,250,0.1)',
+                border: '1px solid rgba(96,165,250,0.25)',
+                color: '#60a5fa',
+              }}
+              disabled={bulkResolving !== null}
+              onClick={async () => {
+                setBulkResolving('skip_all_info');
+                try {
+                  await fetch(`/api/import/${sessionId}/resolve/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'skip_all_info' }),
+                  });
+                  await fetchAnomalies();
+                } finally {
+                  setBulkResolving(null);
+                }
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(96,165,250,0.18)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(96,165,250,0.1)'; }}
+            >
+              {bulkResolving === 'skip_all_info' ? (
+                <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>💨</span>
+              )}
+              Skip All Info
+            </button>
+
+            <button
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                background: 'rgba(52,211,153,0.1)',
+                border: '1px solid rgba(52,211,153,0.25)',
+                color: '#34d399',
+              }}
+              disabled={bulkResolving !== null}
+              onClick={async () => {
+                setBulkResolving('apply_recommended');
+                try {
+                  await fetch(`/api/import/${sessionId}/resolve/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'apply_recommended' }),
+                  });
+                  await fetchAnomalies();
+                } finally {
+                  setBulkResolving(null);
+                }
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.18)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.1)'; }}
+            >
+              {bulkResolving === 'apply_recommended' ? (
+                <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>🎯</span>
+              )}
+              Apply Recommended Fix to All
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Commit button when all resolved */}
       {pendingCount === 0 && (

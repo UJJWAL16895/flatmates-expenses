@@ -1,7 +1,3 @@
-/**
- * POST /api/import — Upload CSV, parse, detect anomalies
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -12,10 +8,35 @@ import {
   createImportRow,
   updateImportSessionStatus,
   storeDetectedAnomalies,
+  getImportSessionsByGroup,
 } from '@/lib/db/import';
 import { getMembershipRanges } from '@/lib/db/groups';
+import { getGroups } from '@/lib/db/groups';
 
 const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * GET /api/import — Return import session history for the user's group
+ */
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = (session.user as { id: string }).id;
+    const groups = await getGroups(userId);
+    const groupId = groups[0]?.id || DEFAULT_GROUP_ID;
+
+    const sessions = await getImportSessionsByGroup(groupId);
+
+    return NextResponse.json({ success: true, data: sessions });
+  } catch (error) {
+    console.error('GET /api/import error:', error);
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
