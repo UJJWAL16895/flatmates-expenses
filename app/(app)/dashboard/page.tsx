@@ -7,26 +7,26 @@ import Link from 'next/link';
 
 // Sample data matching the CSV flatmates
 const SAMPLE_MEMBERS = [
-  { name: 'Aisha', color: '#8b5cf6', balance: 12450 },
-  { name: 'Rohan', color: '#06b6d4', balance: -8200 },
-  { name: 'Priya', color: '#f59e0b', balance: -3100 },
-  { name: 'Sam', color: '#f97316', balance: -1150 },
+  { name: 'Kabir', color: '#8b5cf6', balance: 18500 },
+  { name: 'Ananya', color: '#06b6d4', balance: -9200 },
+  { name: 'Vikram', color: '#f59e0b', balance: -5800 },
+  { name: 'Zara', color: '#f97316', balance: -3500 },
 ];
 
 const SAMPLE_EXPENSES = [
-  { id: 1, description: 'April Rent', amount: 48000, paid_by: 'Aisha', date: '2026-04-01', split: 4, category: '🏠' },
-  { id: 2, description: 'Groceries DMart', amount: 1990, paid_by: 'Sam', date: '2026-04-15', split: 4, category: '🛒' },
-  { id: 3, description: 'Electricity Apr', amount: 1380, paid_by: 'Aisha', date: '2026-04-12', split: 4, category: '⚡' },
-  { id: 4, description: 'Wifi bill Apr', amount: 1199, paid_by: 'Rohan', date: '2026-04-05', split: 3, category: '📶' },
-  { id: 5, description: 'Furniture for common room', amount: 12000, paid_by: 'Aisha', date: '2026-04-18', split: 4, category: '🪑' },
-  { id: 6, description: 'Maid salary Apr', amount: 3000, paid_by: 'Priya', date: '2026-04-20', split: 4, category: '🧹' },
-  { id: 7, description: 'Housewarming drinks', amount: 3100, paid_by: 'Sam', date: '2026-04-10', split: 4, category: '🍻' },
+  { id: 1, description: 'Rent & Maintenance', amount: 55000, paid_by: 'Kabir', date: '2026-05-01', split: 4, category: '🏠' },
+  { id: 2, description: 'Gourmet Groceries', amount: 4500, paid_by: 'Zara', date: '2026-05-10', split: 4, category: '🛒' },
+  { id: 3, description: 'Electricity Bill', amount: 3200, paid_by: 'Kabir', date: '2026-05-12', split: 4, category: '⚡' },
+  { id: 4, description: 'High-Speed Internet', amount: 1800, paid_by: 'Ananya', date: '2026-05-05', split: 4, category: '📶' },
+  { id: 5, description: 'Living Room Smart TV', amount: 24000, paid_by: 'Kabir', date: '2026-05-18', split: 4, category: '📺' },
+  { id: 6, description: 'Weekly Cleaning Service', amount: 4000, paid_by: 'Vikram', date: '2026-05-20', split: 4, category: '🧹' },
+  { id: 7, description: 'Weekend House Party', amount: 8500, paid_by: 'Zara', date: '2026-05-15', split: 4, category: '🍻' },
 ];
 
 const SAMPLE_SETTLEMENTS = [
-  { from: 'Rohan', to: 'Aisha', amount: 8200 },
-  { from: 'Priya', to: 'Aisha', amount: 3100 },
-  { from: 'Sam', to: 'Aisha', amount: 1150 },
+  { from: 'Ananya', to: 'Kabir', amount: 9200 },
+  { from: 'Vikram', to: 'Kabir', amount: 5800 },
+  { from: 'Zara', to: 'Kabir', amount: 3500 },
 ];
 
 function AnimatedCounter({ value, prefix = '₹', duration = 1500 }: { value: number; prefix?: string; duration?: number }) {
@@ -107,7 +107,7 @@ export default function DashboardPage() {
           {[
             { label: 'Total Expenses', value: totalExpenses, icon: '💰', color: 'var(--accent)' },
             { label: 'Active Members', value: 4, icon: '👥', prefix: '', color: 'var(--info)' },
-            { label: 'Your Balance', value: 12450, icon: '📈', color: 'var(--positive)' },
+            { label: 'Your Balance', value: 18500, icon: '📈', color: 'var(--positive)' },
             { label: 'Settlements Due', value: 3, icon: '🤝', prefix: '', color: 'var(--warning)' },
           ].map((stat, i) => (
             <motion.div
