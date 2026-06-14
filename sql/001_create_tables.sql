@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS import_rows (
 );
 
 -- Now add the FK from expenses to import_rows
+ALTER TABLE expenses DROP CONSTRAINT IF EXISTS fk_expenses_import_row;
 ALTER TABLE expenses
   ADD CONSTRAINT fk_expenses_import_row
   FOREIGN KEY (import_row_id) REFERENCES import_rows(id);
