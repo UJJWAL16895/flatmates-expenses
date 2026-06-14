@@ -1,52 +1,63 @@
-# AI Usage & Development Summary
+# AI Collaboration & Usage Report
 
-This document details the tasks and contributions performed by the AI Coding Assistant in building, debugging, and verifying the Flatmates Expense Tracker.
-
----
-
-## 1. Features Built by the AI
-
-The AI built the following components and features based on the application specification:
-1. **Schema & Migration Pipeline**:
-   - Programmed raw SQL tables for `users`, `groups`, `group_members`, `expenses`, `expense_splits`, and `settlements` with exact constraints.
-   - Built a robust, statement-splitting migration script in `scripts/migrate.js` to execute DDL scripts safely over Supabase pools.
-2. **NextAuth Session Authentication**:
-   - Implemented JWT-based credential authentication checking bcrypt hashed passwords.
-   - Created route protection middleware and secured all Next.js API endpoints.
-3. **Integer Cents Expense Calculator**:
-   - Created safe monetary arithmetic modules (Equal, Exact, Percentage, and Shares calculators) utilizing integer cents multiplication.
-   - Built the minimum-transactions greedy algorithm to simplify payments.
-4. **CSV Anomaly Pipeline**:
-   - Designed 17 distinct anomaly detectors mapping raw lines to warning/error records.
-   - Developed review UI tables, difference compare panes, and commit controllers.
-5. **Glassmorphism Theme UI**:
-   - Configured general layouts, sidebar navigational items, and responsive details.
-   - Added interactive animations with Framer Motion and custom CSS properties.
+This document outlines the AI tools used during the development of the Flatmates Expense Tracker, key prompts executed, and details on three specific cases where the AI generated incorrect code, how it was caught, and how it was fixed.
 
 ---
 
-## 2. Debugging Actions
-
-The AI successfully investigated and resolved the following production roadblocks:
-* **Supabase DNS Unresolvable (Direct IPv4)**:
-  - **Symptom**: `getaddrinfo ENOTFOUND` when resolving `db.stqayuzcbuhpqiaabsjg.supabase.co`.
-  - **Resolution**: Updated configurations to use the regional transactional pooler address `aws-1-ap-south-1.pooler.supabase.com`.
-* **PgBouncer Multi-Statement Hangs (Port 6543)**:
-  - **Symptom**: Multi-statement SQL migration runs hung indefinitely.
-  - **Resolution**: Switched to port `5432` (Session Mode) and wrote a comment-stripping, semicolon-splitting statement executor in `migrate.js` to execute queries sequentially.
-* **Invalid Seeding Hex character `g`**:
-  - **Symptom**: Seed sql failed with invalid uuid syntax.
-  - **Resolution**: Replaced the placeholder `g0000000-0000-0000-0000-000000000000` with the standard valid zero-UUID (`00000000-0000-0000-0000-000000000000`) throughout schemas and app queries.
-* **Incorrect Bcrypt Seed Password Hash**:
-  - **Symptom**: Users could not sign in. We verified the seeded bcrypt hash in database was incorrect.
-  - **Resolution**: Generated a fresh hash for `password123` via Node CLI, modified the seed scripts to overwrite password hashes on conflict, and re-executed the setup migrations.
-* **Login Domain & Page Toggle**:
-  - **Symptom**: UI shortcuts set emails to `@flat.io` with password `'demo'`.
-  - **Resolution**: Rewrote the form buttons to input `@flatmates.app` emails and `password123`. Added an eye button toggle displaying password text to prevent input mistakes.
+## 1. AI Tools Utilized
+* **Primary AI Assistant**: **Antigravity**, Google DeepMind's agentic AI coding assistant, running in Planning Mode to design, build, and verify features iteratively.
+* **Integrations**: Next.js App Router compiler, TypeScript compiler (`tsc`), and Git version control tools.
 
 ---
 
-## 3. Verification & Build Confirmation
+## 2. Key Prompts & Intents
+During the course of the project, the following core instructions drove the development:
+1. **Schema Generation**: *"Create a migration script that builds raw SQL tables for users, group membership timelines, multi-currency expenses, and manual settlements, ensuring PgBouncer compatibility on port 5432."*
+2. **Integer Arithmetic Engine**: *"Write monetary calculation helpers in integer cents to completely avoid floating-point drift, with splits distributed sequentially for remainder cents."*
+3. **CSV Anomaly Pipeline**: *"Implement an intermediate db storage pipeline parsing CSV lines to run 17 distinct detectors identifying dates, currency omissions, invalid member splits, and duplicates."*
+4. **UX Polish Checklist**: *"Add CSS keyframes, Framer Motion staggered list loaders, progress bar shimmering, and an interactive settlements network graph with curved Directed edges, hover tooltips, and click filtering."*
 
-* **Compilation Status**: Executed `npm run build` which verified that TypeScript type-checking, Turbopack, and Next.js static site generation compile cleanly with no compilation errors.
-* **Data Consistency**: Verified that all mock pages (`dashboard`, `balances`, `expenses`, `groups`) render the custom flatmates dataset (`Kabir`, `Ananya`, `Vikram`, `Zara`) correctly.
+---
+
+## 3. Concrete Cases of AI Errors, Detection, & Fixes
+
+Below are three specific instances where the AI generated incorrect code or architecture, how it was identified, and the resolution implemented:
+
+### Case 1: Duplicate JSX `className` Attribute
+* **The Error**: While writing the SVG grouping element for nodes in the Settlement Network Graph (`components/settlements/network-graph.tsx`), the AI generated two duplicate `className` attributes on the `<g>` element:
+  ```tsx
+  <g
+    key={node.name}
+    className="cursor-pointer"
+    ...
+    className="transition-all duration-300"
+  >
+  ```
+* **How It Was Caught**: During the verification step, running a local Next.js production build (`npm run build`) triggered a TypeScript/JSX compilation failure:
+  ```bash
+  Type error: JSX elements cannot have multiple attributes with the same name.
+    303 |                 }}
+    304 |                 style={{ opacity: isHighlighted ? 1 : 0.15 }}
+  > 305 |                 className="transition-all duration-300"
+        |                 ^
+  ```
+* **What Was Changed**: Merged the duplicate classNames into a single string:
+  ```tsx
+  className="cursor-pointer transition-all duration-300"
+  ```
+  After this fix, the build completed successfully with zero compile warnings.
+
+### Case 2: PgBouncer Protocol Hangs during Multi-Statement DDL
+* **The Error**: The AI initially configured database migrations to run raw SQL multi-statement scripts directly over port `6543` (transaction mode).
+* **How It Was Caught**: In transaction mode, executing multi-statement strings causes PgBouncer to hang indefinitely or throw an unsupported protocol error since it cannot guarantee transactional state across multiple statements in standard pools.
+* **What Was Changed**:
+  1. Updated the connection string URL to target port `5432` (Session Mode) specifically for schema DDL operations.
+  2. Modified the migration utility `scripts/migrate.js` to strip SQL comments, dynamically split queries using semicolons, and run them sequentially using a single Client transaction block.
+
+### Case 3: Invalid Seed UUID Syntax (Hexadecimal Check)
+* **The Error**: The AI generated a default seeding placeholder UUID containing an invalid hexadecimal character: `"g0000000-0000-0000-0000-000000000000"` (the character `'g'` is out of the `[0-9a-f]` hex range).
+* **How It Was Caught**: Executing the database seed script failed with a raw Postgres error:
+  ```bash
+  invalid input syntax for type uuid: "g0000000-0000-0000-0000-000000000000"
+  ```
+* **What Was Changed**: Replaced the malformed placeholder string with the correct zero-UUID syntax (`00000000-0000-0000-0000-000000000000`) in all SQL scripts and corresponding user session defaults.

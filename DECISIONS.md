@@ -83,3 +83,27 @@ Aisha wants to see the minimum possible transaction steps to resolve group balan
   const settlementCents = Math.min(creditor.cents, debtor.cents);
   ```
 * **Drill-down Capability**: Implemented `getUserBalanceDetail` to retrieve a list of all individual splits and settlements involving a specific user, enabling a full audit path from the dashboard balance cards.
+
+---
+
+## 6. Settlements Network Graph: Circular Layout vs Force-Directed Layouts
+
+### Context
+The settlements page needs to visually present outstanding payments between flatmates. A traditional list can be tedious, while a standard force-directed layout can bounce erratically and lead to overlapping edges.
+
+### Decision
+* **Circular Arranged Nodes**: Placed avatars in a predictable circle around a central origin using polar trigonometry ($\theta = \frac{2\pi \cdot i}{N} - \frac{\pi}{2}$). This guarantees node positions are static and readable.
+* **Quadratic Bezier Directed Edges**: Connected nodes with curved quadratic Bezier pathways (`Q cx cy`). Since lines in opposite directions offset in opposite directions, flows from A $\to$ B and B $\to$ A never overlap.
+* **Color and Width Scaling**: Encoded settlement sizes visually. The stroke thickness scales proportionally, and edge colors shift dynamically based on size ratios (Violet $\to$ Blue $\to$ Amber $\to$ Rose), matching the dashboard's design.
+* **Graph-Linked Click Filtering**: Clicking a node acts as a global page filter. It highlights direct cash paths in the graph while filtering the settlements list below, providing a highly cohesive interaction loop.
+
+---
+
+## 7. Client-Side Page Route Transitions
+
+### Context
+By default, Next.js transitions between pages instantaneously, which can feel rigid and mechanical. We wanted smooth, premium transitions without degrading page performance.
+
+### Decision
+* **Pathname-Keyed Framer Motion Wrapper**: Created a `<PageTransition>` component using `framer-motion` that wraps page children and binds `key={pathname}`. This forces a clean mount animation (`initial={{ opacity: 0, y: 10 }}` to `animate={{ opacity: 1, y: 0 }}`) whenever Next.js changes routes.
+* **Glassmorphic Skeleton Shimmers**: Loading states utilize custom pulse shimmers overlaid on semi-transparent backgrounds to maintain visual continuity while fetching asynchronous group metrics.

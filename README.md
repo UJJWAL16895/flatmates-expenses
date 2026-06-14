@@ -67,14 +67,15 @@ Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
 ---
 
-## Seed User Accounts
-Use any of these flatmate credentials to log in. All accounts share the same password:
-
-- **Aisha**: `aisha@flatmates.app` (Joined Feb 1, 2026 - Active)
-- **Rohan**: `rohan@flatmates.app` (Joined Feb 1, 2026 - Active)
-- **Priya**: `priya@flatmates.app` (Joined Feb 1, 2026 - Active)
-- **Sam**: `sam@flatmates.app` (Joined Apr 8, 2026 - Active)
-- **Meera**: `meera@flatmates.app` (Former flatmate: Feb 1, 2026 – Mar 31, 2026)
-- **Dev**: `dev@flatmates.app` (Temporary traveler: Mar 8, 2026 – Mar 14, 2026)
-
 **Password for all accounts:** `password123`
+
+---
+
+## AI Collaboration & Assistant
+This project was developed in close collaboration with **Antigravity**, Google DeepMind's agentic AI coding assistant. 
+
+### How AI was Utilized:
+1. **Interactive Pair Programming**: The AI helped design UI layouts, write logic routines, and build complex interactive elements like the circular SVG network graph.
+2. **Automated Verification Loops**: The AI executed local Next.js builds, ran Type checks (`tsc`), and validated runtime behaviors to catch and resolve regressions.
+3. **Database & API Scaffolding**: Generated SQL migration DDL tables, configured session-based NextAuth logic, and implemented currency engine split algorithms.
+4. **Interactive Graph Math**: Derived coordinate calculations and quadratic Bezier curves for Directed edges in the Settlements visualizer.
