@@ -15,7 +15,7 @@ import {
 } from '@/lib/db/import';
 import { getMembershipRanges } from '@/lib/db/groups';
 
-const DEFAULT_GROUP_ID = 'g0000000-0000-0000-0000-000000000000';
+const DEFAULT_GROUP_ID = '00000000-0000-0000-0000-000000000000';
 
 export async function POST(req: NextRequest) {
   try {

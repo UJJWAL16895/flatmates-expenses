@@ -52,7 +52,7 @@ export default function ImportPage() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('group_id', 'g0000000-0000-0000-0000-000000000000');
+    formData.append('group_id', '00000000-0000-0000-0000-000000000000');
 
     try {
       await delay(300);
