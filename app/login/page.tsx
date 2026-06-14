@@ -96,7 +96,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder="aisha@flat.io"
+              placeholder="aisha@flatmates.app"
               required
             />
           </div>
@@ -152,14 +152,14 @@ export default function LoginPage() {
         {/* Demo accounts */}
         <div className="mt-8 pt-6" style={{ borderTop: '1px solid var(--border-color)' }}>
           <p className="text-xs text-center mb-3" style={{ color: 'var(--text-muted)' }}>
-            Demo accounts (any password works)
+            Demo accounts (click to log in)
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {['aisha@flat.io', 'rohan@flat.io', 'priya@flat.io', 'sam@flat.io'].map((e) => (
+            {['aisha@flatmates.app', 'rohan@flatmates.app', 'priya@flatmates.app', 'sam@flatmates.app'].map((e) => (
               <button
                 key={e}
                 type="button"
-                onClick={() => { setEmail(e); setPassword('demo'); }}
+                onClick={() => { setEmail(e); setPassword('password123'); }}
                 className="text-xs p-2 rounded-lg transition-colors"
                 style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)' }}
               >
